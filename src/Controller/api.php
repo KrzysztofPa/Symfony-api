@@ -15,22 +15,22 @@ class api extends AbstractController
     /**
      * @Route("/", name="api_homepage")
      */
-    public function homepage()
+    public function homepage(): Response
     {
 
-        return $this->render('api/homepage.html.twig');
+        return $this->render('database/homepage.html.twig');
 
     }
 
     /**
-     * @Route("/add")
+     * @Route("/add", methods={"POST"})
      */
-    public function add(EntityManagerInterface $entityManager)
+    public function add(EntityManagerInterface $entityManager): Response
     {
         $user = new Users();
         $user->setFirstName('Jan')
-        ->setLastName('Pawel')
-        ->setAge(rand(1,100));
+            ->setLastName('Pawel')
+            ->setAge(rand(1, 100));
 
         $entityManager->persist($user);
         $entityManager->flush();
@@ -40,11 +40,17 @@ class api extends AbstractController
     }
 
     /**
-     * @Route("/show", methods={"POST"})
+     * @Route("/show")
      */
-    public function show()
+    public function show(EntityManagerInterface $entityManager): Response
     {
-        return new Response('show');
+
+        $repository = $entityManager->getRepository(Users::class);
+        $users = $repository->findAll();
+dump($users);
+        return $this->render('database/show.html.twig', [
+            'users' => $users
+        ]);
 
     }
 
