@@ -5,10 +5,13 @@ namespace App\Controller;
 
 
 use App\Entity\Users;
+use App\Form\Type\UserType;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class api extends AbstractController
 {
@@ -17,15 +20,27 @@ class api extends AbstractController
      */
     public function homepage(): Response
     {
-
         return $this->render('database/homepage.html.twig');
+    }
+
+    /**
+     * @Route("/add")
+     */
+    public function addUser(): Response
+    {
+        $user = new Users();
+
+        $form = $this->createForm(UserType::class, $user);
+        return $this->render('database/new.html.twig',
+            ['form' => $form->createView(),
+            ]);
 
     }
 
     /**
-     * @Route("/add", methods={"POST"})
+     * @Route("/sendToDatabase", methods={"POST"})
      */
-    public function add(EntityManagerInterface $entityManager): Response
+    public function parseUserToDatabase(EntityManagerInterface $entityManager): Response
     {
         $user = new Users();
         $user->setFirstName('Jan')
@@ -34,7 +49,8 @@ class api extends AbstractController
 
         $entityManager->persist($user);
         $entityManager->flush();
-        dd($user);
+
+
         return new Response('get');
 
     }
@@ -47,7 +63,6 @@ class api extends AbstractController
 
         $repository = $entityManager->getRepository(Users::class);
         $users = $repository->findAll();
-dump($users);
         return $this->render('database/show.html.twig', [
             'users' => $users
         ]);
