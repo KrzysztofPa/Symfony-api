@@ -7,11 +7,11 @@ namespace App\Controller;
 use App\Entity\Users;
 use App\Form\Type\UserType;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Form\FormTypeInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
+
 
 class api extends AbstractController
 {
@@ -26,11 +26,25 @@ class api extends AbstractController
     /**
      * @Route("/add")
      */
-    public function addUser(): Response
+    public function addUser(Request $request, EntityManagerInterface $entityManager): Response
     {
         $user = new Users();
 
         $form = $this->createForm(UserType::class, $user);
+
+        $form ->handleRequest($request);
+        if($form->isSubmitted() && $form->isValid()){
+           $user = $form->getData();
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+
+            header("Location: /user_add_success");
+            die();
+        }
+
+
         return $this->render('database/new.html.twig',
             ['form' => $form->createView(),
             ]);
@@ -38,20 +52,11 @@ class api extends AbstractController
     }
 
     /**
-     * @Route("/sendToDatabase", methods={"POST"})
+     * @Route("/user_add_success")
      */
-    public function parseUserToDatabase(EntityManagerInterface $entityManager): Response
+    public function userAddSuccess(): Response
     {
-        $user = new Users();
-        $user->setFirstName('Jan')
-            ->setLastName('Pawel')
-            ->setAge(rand(1, 100));
-
-        $entityManager->persist($user);
-        $entityManager->flush();
-
-
-        return new Response('get');
+        return new Response('success');
 
     }
 
